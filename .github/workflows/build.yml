@@ -17,20 +17,25 @@ jobs:
       - name: Generate Xcode project manually
         run: |
           mkdir -p DSHMobile.xcodeproj
-          # 用 Ruby 的 xcodeproj gem 来生成工程，避开 XcodeGen
           gem install xcodeproj
           ruby -e "
             require 'xcodeproj'
             project = Xcodeproj::Project.new('DSHMobile.xcodeproj')
             target = project.new_target(:application, 'DSHMobile', :ios, '16.0')
-            # 添加 Sources 目录下的 swift 文件
-            Dir.glob('Sources/*.swift').each do |file|
+            
+            # 显式找到每个 Swift 文件并加进 Target
+            swift_files = Dir.glob('Sources/*.swift')
+            puts \"发现 Swift 文件: #{swift_files}\"
+            swift_files.each do |file|
               file_ref = project.main_group.new_file(file)
               target.add_file_references([file_ref])
             end
-            # 添加 Info.plist 配置
+            
             target.build_configurations.each do |config|
+              # 关键修复：禁止 Xcode 自动生成 Info.plist，强制使用我们的
+              config.build_settings['GENERATE_INFOPLIST_FILE'] = 'NO'
               config.build_settings['INFOPLIST_FILE'] = 'Sources/Info.plist'
+              
               config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.liaojinxuan666.DSHMobile'
               config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
               config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
@@ -38,7 +43,7 @@ jobs:
             end
             project.save
           "
-          
+
       - name: Create Info.plist
         run: |
           mkdir -p Sources
@@ -102,6 +107,10 @@ jobs:
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           
           zip -qr DSHMobile-unsigned.ipa Payload
+          
+          echo "=== 检查打包后的 Info.plist 内容 ==="
+          plutil -p Payload/DSHMobile.app/Info.plist
+          
           echo "=== 检查 App 包内的资源 ==="
           ls -lh Payload/DSHMobile.app/Resources/
 
