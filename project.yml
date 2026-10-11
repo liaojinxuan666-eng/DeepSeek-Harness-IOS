@@ -8,16 +8,22 @@ targets:
     type: application
     platform: iOS
     sources: [Sources]
+    # 核心修复：让 XcodeGen 帮我们生成一个完整的 Info.plist，而不是让 Xcode 自动生成
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleExecutable: DSHMobile
+        CFBundleIdentifier: com.liaojinxuan666.DSHMobile
+        CFBundleName: DSHMobile
+        CFBundleDisplayName: DSH Mobile
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.liaojinxuan666.DSHMobile
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         TARGETED_DEVICE_FAMILY: "1,2"
-        # 核心修正：让 Xcode 自动生成 Info.plist，避免手动拼写遗漏
-        GENERATE_INFOPLIST_FILE: YES
-        # 通过这里给生成的 plist 注入我们需要的字段
-        INFOPLIST_KEY_CFBundleDisplayName: DSH Mobile
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
