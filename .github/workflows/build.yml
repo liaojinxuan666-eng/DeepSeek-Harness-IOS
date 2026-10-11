@@ -23,59 +23,21 @@ jobs:
             project = Xcodeproj::Project.new('DSHMobile.xcodeproj')
             target = project.new_target(:application, 'DSHMobile', :ios, '16.0')
             
-            # 显式找到每个 Swift 文件并加进 Target
+            # 加入 Swift 文件
             swift_files = Dir.glob('Sources/*.swift')
-            puts \"发现 Swift 文件: #{swift_files}\"
             swift_files.each do |file|
               file_ref = project.main_group.new_file(file)
               target.add_file_references([file_ref])
             end
             
             target.build_configurations.each do |config|
-              # 关键修复：禁止 Xcode 自动生成 Info.plist，强制使用我们的
-              config.build_settings['GENERATE_INFOPLIST_FILE'] = 'NO'
-              config.build_settings['INFOPLIST_FILE'] = 'Sources/Info.plist'
-              
-              config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.liaojinxuan666.DSHMobile'
+              config.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
               config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
               config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
               config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
             end
             project.save
           "
-
-      - name: Create Info.plist
-        run: |
-          mkdir -p Sources
-          cat > Sources/Info.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>DSHMobile</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.liaojinxuan666.DSHMobile</string>
-              <key>CFBundleName</key>
-              <string>DSHMobile</string>
-              <key>CFBundleDisplayName</key>
-              <string>DSH Mobile</string>
-              <key>CFBundleVersion</key>
-              <string>1.0</string>
-              <key>CFBundleShortVersionString</key>
-              <string>1.0</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>NSAppTransportSecurity</key>
-              <dict>
-                  <key>NSAllowsLocalNetworking</key>
-                  <true/>
-              </dict>
-              <key>UILaunchScreen</key>
-              <dict/>
-          </dict>
-          </plist>
-          EOF
 
       - name: Download Alpine rootfs
         run: |
@@ -95,14 +57,20 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS=""
+            CODE_SIGN_ENTITLEMENTS="" \
+            GENERATE_INFOPLIST_FILE=YES \
+            INFOPLIST_KEY_CFBundleIdentifier="com.liaojinxuan666.DSHMobile" \
+            INFOPLIST_KEY_CFBundleName="DSHMobile" \
+            INFOPLIST_KEY_CFBundleExecutable="DSHMobile" \
+            INFOPLIST_KEY_UILaunchScreen_Generation=YES \
+            INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking=YES
 
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphoneos/DSHMobile.app Payload/
           
-          # 把下载好的 Alpine 资源塞进 App 包
+          # 塞入 Alpine 资源
           mkdir -p Payload/DSHMobile.app/Resources
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           
@@ -110,7 +78,6 @@ jobs:
           
           echo "=== 检查打包后的 Info.plist 内容 ==="
           plutil -p Payload/DSHMobile.app/Info.plist
-          
           echo "=== 检查 App 包内的资源 ==="
           ls -lh Payload/DSHMobile.app/Resources/
 
