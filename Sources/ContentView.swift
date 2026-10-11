@@ -12,7 +12,16 @@ struct WebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.allowsBackForwardNavigationGestures = false
         webView.scrollView.bounces = false
-        webView.load(URLRequest(url: url))
+        
+        // ===== 测试代码：加载本地 HTML =====
+        let html = """
+        <html><body style="background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:sans-serif;">
+        <h1>WebView 壳子正常运行！</h1>
+        </body></html>
+        """
+        webView.loadHTMLString(html, baseURL: nil)
+        // ===== 测试代码结束 =====
+        
         return webView
     }
 
@@ -20,10 +29,8 @@ struct WebView: UIViewRepresentable {
 }
 
 struct ContentView: View {
-    let targetURL = URL(string: "http://127.0.0.1:3080")!
-    
     var body: some View {
-        WebView(url: targetURL)
+        WebView(url: URL(string: "http://127.0.0.1:3080")!)
             .ignoresSafeArea()
     }
 }
