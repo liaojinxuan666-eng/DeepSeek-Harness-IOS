@@ -8,12 +8,24 @@ targets:
     type: application
     platform: iOS
     sources: [Sources]
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleExecutable: DSHMobile
+        CFBundleIdentifier: com.liaojinxuan666.DSHMobile
+        CFBundleName: DSHMobile
+        CFBundleDisplayName: DSH Mobile
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        # 核心修复：加上了 SwiftUI 必须的 Scene 清单
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen: {}
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
-        # 核心修复：禁止 Xcode 自动生成 plist，强制使用我们写的
-        GENERATE_INFOPLIST_FILE: NO
-        INFOPLIST_FILE: Sources/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.liaojinxuan666.DSHMobile
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         TARGETED_DEVICE_FAMILY: "1,2"
