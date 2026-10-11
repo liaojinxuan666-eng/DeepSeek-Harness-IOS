@@ -22,7 +22,6 @@ jobs:
           mkdir -p Resources
           curl -L -o Resources/alpine-minirootfs.tar.gz https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/alpine-minirootfs-3.20.3-aarch64.tar.gz
           echo "=== 下载完成 ==="
-          ls -lh Resources/
 
       - name: Build (unsigned)
         run: |
@@ -42,16 +41,13 @@ jobs:
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphoneos/DSHMobile.app Payload/
           
-          # 把 Alpine 资源塞进 App 包
           mkdir -p Payload/DSHMobile.app/Resources
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           
           zip -qr DSHMobile-unsigned.ipa Payload
           
-          echo "=== 检查打包后的 Info.plist 内容 ==="
+          echo "=== 严格检查打包后的 Info.plist 内容 ==="
           plutil -p Payload/DSHMobile.app/Info.plist
-          echo "=== 检查 App 包内的资源 ==="
-          ls -lh Payload/DSHMobile.app/Resources/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
