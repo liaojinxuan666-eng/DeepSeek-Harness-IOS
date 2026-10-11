@@ -7,37 +7,15 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-      - name: Generate Xcode project manually
-        run: |
-          mkdir -p DSHMobile.xcodeproj
-          gem install xcodeproj
-          ruby -e "
-            require 'xcodeproj'
-            project = Xcodeproj::Project.new('DSHMobile.xcodeproj')
-            target = project.new_target(:application, 'DSHMobile', :ios, '16.0')
-            
-            # 加入 Swift 文件
-            swift_files = Dir.glob('Sources/*.swift')
-            swift_files.each do |file|
-              file_ref = project.main_group.new_file(file)
-              target.add_file_references([file_ref])
-            end
-            
-            target.build_configurations.each do |config|
-              config.build_settings['GENERATE_INFOPLIST_FILE'] = 'YES'
-              config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-              config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
-              config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
-            end
-            project.save
-          "
+      - name: Generate Xcode project
+        run: xcodegen generate
 
       - name: Download Alpine rootfs
         run: |
@@ -57,20 +35,14 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            GENERATE_INFOPLIST_FILE=YES \
-            INFOPLIST_KEY_CFBundleIdentifier="com.liaojinxuan666.DSHMobile" \
-            INFOPLIST_KEY_CFBundleName="DSHMobile" \
-            INFOPLIST_KEY_CFBundleExecutable="DSHMobile" \
-            INFOPLIST_KEY_UILaunchScreen_Generation=YES \
-            INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking=YES
+            CODE_SIGN_ENTITLEMENTS=""
 
       - name: Package unsigned IPA
         run: |
           mkdir -p Payload
           cp -r build/Build/Products/Release-iphoneos/DSHMobile.app Payload/
           
-          # 塞入 Alpine 资源
+          # 把 Alpine 资源塞进 App 包
           mkdir -p Payload/DSHMobile.app/Resources
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           
