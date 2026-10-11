@@ -11,39 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create perfectly formatted Info.plist
-        run: |
-          mkdir -p Sources
-          cat > Sources/Info.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>DSHMobile</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.liaojinxuan666.DSHMobile</string>
-              <key>CFBundleName</key>
-              <string>DSHMobile</string>
-              <key>CFBundleDisplayName</key>
-              <string>DSH Mobile</string>
-              <key>CFBundleVersion</key>
-              <string>1</string>
-              <key>CFBundleShortVersionString</key>
-              <string>1.0</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>UILaunchScreen</key>
-              <dict/>
-              <key>NSAppTransportSecurity</key>
-              <dict>
-                  <key>NSAllowsLocalNetworking</key>
-                  <true/>
-              </dict>
-          </dict>
-          </plist>
-          EOF
-
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -76,7 +43,6 @@ jobs:
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           zip -qr DSHMobile-unsigned.ipa Payload
           
-          # 在 CI 日志里强制打印检查结果！
           echo "=== 最终检查 Info.plist 是否完整 ==="
           plutil -p Payload/DSHMobile.app/Info.plist
 
