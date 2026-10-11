@@ -11,19 +11,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
-      - name: Generate Xcode project
-        run: xcodegen generate
+      - name: Generate Xcode project manually
+        run: |
+          mkdir -p DSHMobile.xcodeproj
+          # 用 Ruby 的 xcodeproj gem 来生成工程，避开 XcodeGen
+          gem install xcodeproj
+          ruby -e "
+            require 'xcodeproj'
+            project = Xcodeproj::Project.new('DSHMobile.xcodeproj')
+            target = project.new_target(:application, 'DSHMobile', :ios, '16.0')
+            # 添加 Sources 目录下的 swift 文件
+            Dir.glob('Sources/*.swift').each do |file|
+              file_ref = project.main_group.new_file(file)
+              target.add_file_references([file_ref])
+            end
+            # 添加 Info.plist 配置
+            target.build_configurations.each do |config|
+              config.build_settings['INFOPLIST_FILE'] = 'Sources/Info.plist'
+              config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.liaojinxuan666.DSHMobile'
+              config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+              config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+              config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+            end
+            project.save
+          "
+          
+      - name: Create Info.plist
+        run: |
+          mkdir -p Sources
+          cat > Sources/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>NSAppTransportSecurity</key>
+              <dict>
+                  <key>NSAllowsLocalNetworking</key>
+                  <true/>
+              </dict>
+              <key>UILaunchScreen</key>
+              <dict/>
+          </dict>
+          </plist>
+          EOF
 
       - name: Build (unsigned)
         run: |
           xcodebuild \
             -project DSHMobile.xcodeproj \
             -scheme DSHMobile \
-            -sdk iphoneos \
             -configuration Release \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
