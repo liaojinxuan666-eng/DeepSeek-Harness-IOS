@@ -47,6 +47,20 @@ jobs:
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
+              <key>CFBundleExecutable</key>
+              <string>DSHMobile</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.liaojinxuan666.DSHMobile</string>
+              <key>CFBundleName</key>
+              <string>DSHMobile</string>
+              <key>CFBundleDisplayName</key>
+              <string>DSH Mobile</string>
+              <key>CFBundleVersion</key>
+              <string>1.0</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
               <key>NSAppTransportSecurity</key>
               <dict>
                   <key>NSAllowsLocalNetworking</key>
