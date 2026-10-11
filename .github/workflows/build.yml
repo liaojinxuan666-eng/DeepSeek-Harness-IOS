@@ -11,6 +11,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 在一切开始之前，手写一个绝对完美的 Info.plist
+      - name: Force create perfect Info.plist
+        run: |
+          mkdir -p Sources
+          cat > Sources/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>DSHMobile</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.liaojinxuan666.DSHMobile</string>
+              <key>CFBundleName</key>
+              <string>DSHMobile</string>
+              <key>CFBundleDisplayName</key>
+              <string>DSH Mobile</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>UIApplicationSceneManifest</key>
+              <dict>
+                  <key>UIApplicationSupportsMultipleScenes</key>
+                  <false/>
+              </dict>
+              <key>UILaunchScreen</key>
+              <dict/>
+              <key>NSAppTransportSecurity</key>
+              <dict>
+                  <key>NSAllowsLocalNetworking</key>
+                  <true/>
+              </dict>
+          </dict>
+          </plist>
+          EOF
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -30,6 +71,8 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build \
+            GENERATE_INFOPLIST_FILE=NO \
+            INFOPLIST_FILE=Sources/Info.plist \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -43,7 +86,13 @@ jobs:
           cp -r Resources/* Payload/DSHMobile.app/Resources/
           zip -qr DSHMobile-unsigned.ipa Payload
           
-          echo "=== 最终检查 Info.plist 是否完整 ==="
+          echo "================ 强制验证检查 ================"
+          # 如果打包后的 Info.plist 里没有 CFBundleIdentifier，直接报错退出，不生成废包！
+          if ! plutil -p Payload/DSHMobile.app/Info.plist | grep -q "CFBundleIdentifier"; then
+            echo "❌ 致命错误：打包后的 Info.plist 里依然没有 CFBundleIdentifier！"
+            exit 1
+          fi
+          echo "✅ 成功！Info.plist 里包含 CFBundleIdentifier。"
           plutil -p Payload/DSHMobile.app/Info.plist
 
       - name: Upload artifact
