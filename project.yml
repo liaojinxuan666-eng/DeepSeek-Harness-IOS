@@ -1,0 +1,23 @@
+name: DSHMobile
+options:
+  bundleIdPrefix: com.liaojinxuan666
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  DSHMobile:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    info:
+      path: Sources/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liaojinxuan666.DSHMobile
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
